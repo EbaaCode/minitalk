@@ -6,79 +6,104 @@
 /*   By: ealshari <ealshari@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 13:01:06 by ealshari          #+#    #+#             */
-/*   Updated: 2025/02/11 16:54:52 by ealshari         ###   ########.fr       */
+/*   Updated: 2025/02/16 18:24:46 by ealshari         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-static int g_status = 0;
+typedef struct {
+	int pid;
+	int status;
+	struct sigaction sa;
+} t_client;
 
-void	handler(int signum)
+static void clean_exit(t_client *client, const char *error_msg)
+{
+	(void)client;  // In case we need cleanup later
+	if (error_msg)
+		write(STDERR_FILENO, error_msg, ft_strlen(error_msg));
+	exit(EXIT_FAILURE);
+}
+
+static t_client *g_client;
+
+static void handle_signals(int signum)
 {
 	if (signum == SIGUSR1)
-		g_status = 1;
+		g_client->status = 1;
 	else if (signum == SIGUSR2)
-		exit(1);
+		exit(EXIT_SUCCESS);
 }
 
-void	send_char(char bit, int pid)
+static void initialize_client(t_client *client)
 {
-	unsigned char	temp;
-	int				i_bit;
+	g_client = client;
+	client->status = 0;
+	client->sa.sa_handler = handle_signals;
+	client->sa.sa_flags = 0;
+	sigemptyset(&client->sa.sa_mask);
 
-	i_bit = 8;
-	temp = (unsigned char)bit;
-	while (i_bit--)
-	{
-		g_status = 0;
-		temp = (bit >> i_bit);
-		if (temp % 2 == 0)
-		{
-			if (kill(pid, SIGUSR2) == -1)
-				exit(!!(write(STDOUT_FILENO, "Error\n", 6)));
-		}
-		else
-		{
-			if (kill(pid, SIGUSR1) == -1)
-				exit(!!(write(STDOUT_FILENO, "Error\n", 6)));
-		}
-		while (!g_status)
-			;
-	}
+	if (sigaction(SIGUSR1, &client->sa, NULL) == -1)
+		clean_exit(client, "Failed to set SIGUSR1 handler\n");
+	if (sigaction(SIGUSR2, &client->sa, NULL) == -1)
+		clean_exit(client, "Failed to set SIGUSR2 handler\n");
 }
 
+static void validate_input(int argc, char **argv, t_client *client)
+{
+	if (argc != 3)
+		clean_exit(client, "Usage: ./client [server_pid] [message]\n");
 
-void send_message(char *data, int pid)
+	client->pid = ft_atoi(argv[1]);
+	if (client->pid <= 0)
+		clean_exit(client, "Invalid PID\n");
+}
+
+static void send_bit(int bit, t_client *client)
+{
+	if (bit)
+	{
+		if (kill(client->pid, SIGUSR1) == -1)
+			clean_exit(client, "Failed to send signal\n");
+	}
+	else
+	{
+		if (kill(client->pid, SIGUSR2) == -1)
+			clean_exit(client, "Failed to send signal\n");
+	}
+	while (!client->status)
+		;
+	client->status = 0;
+}
+
+static void send_char(char c, t_client *client)
 {
 	int i;
-	i = 0;
-	while (data[i])
-	{
-		send_char(data[i], pid);
-		i++;
-	}
-	send_char('\0', pid);
+	unsigned char temp;
+
+	i = 8;
+	temp = (unsigned char)c;
+	while (i--)
+		send_bit((temp >> i) & 1, client);
 }
 
-#include <stdio.h>
-
-int	main(int argc, char **argv)
+static void send_message(const char *msg, t_client *client)
 {
-	struct sigaction sa;
-
-	sa.sa_handler = handler;
-	sa.sa_flags = 0;
-
-	sigemptyset(&sa.sa_mask);
-	if(sigaction(SIGUSR1, &sa, NULL) == -1)
-		return (EXIT_FAILURE);
-	if(sigaction(SIGUSR2, &sa, NULL) == -1)
-		return (EXIT_FAILURE);
-	if(argc == 3)
+	while (*msg)
 	{
-		int pid = atoi(argv[1]);
-		send_message(argv[2], pid);
+		send_char(*msg, client);
+		msg++;
 	}
-	return (0);
+	send_char('\0', client);
+}
+
+int main(int argc, char **argv)
+{
+	t_client client;
+
+	initialize_client(&client);
+	validate_input(argc, argv, &client);
+	send_message(argv[2], &client);
+	return (EXIT_SUCCESS);
 }
