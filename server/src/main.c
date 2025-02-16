@@ -6,7 +6,7 @@
 /*   By: ealshari <ealshari@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 13:00:43 by ealshari          #+#    #+#             */
-/*   Updated: 2025/02/11 17:19:58 by ealshari         ###   ########.fr       */
+/*   Updated: 2025/02/16 20:24:58 by ealshari         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,15 @@ void handler(int sig, siginfo_t *info, void *ucontext)
 		pid = info->si_pid;
 	if(pid != info->si_pid)
 	{
-		kill(info->si_pid, SIGUSR2);
-		return ;
+		kill(pid, SIGUSR2);
+		free(str);
+		str = NULL;
+		i = 0;
+		c = 0;
+		buffer = 0;
+		buff = 0;
+		index = 0;
+		pid = info->si_pid;
 	}
 	if(buffer == 0)
 		buffer = BUFFER_SIZE;
@@ -62,6 +69,7 @@ void handler(int sig, siginfo_t *info, void *ucontext)
 			buffer = 0;
 			buff = 0;
 			index = 0;
+			pid = 0;
 			free(str);
 			str = NULL;
 			kill(info->si_pid, SIGUSR1);
@@ -94,3 +102,8 @@ int	main(void)
 		pause();
 	return (0);
 }
+
+
+// THE EPIC SUPER DUPER LIST OF THINGS KMKINGMAN RECOMMENDS I HANDLE / TEST TO MAKE THE GREATEST EPIC MINITALK PROJECT TO EVER EXIST:
+// - if the buffersize is 0 or 1 (use -D flag to change the buffer size)
+// - if the system calls just faild  (for ex: kill) they should return -1
