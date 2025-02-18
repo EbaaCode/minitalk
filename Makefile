@@ -8,7 +8,7 @@ CLIENT_SRC_FILES = $(addprefix $(CLIENT_DIR)/, $(CLIENT_SRC))
 CLIENT_OBJ = $(addprefix $(CLIENT_OBJ_DIR)/, $(CLIENT_SRC:.c=.o))
 CLIENT = bin/client
 
-SERVER_SRC = main.c
+SERVER_SRC = main.c buffer.c utils.c
 SERVER_DIR = server/src
 SERVER_OBJ_DIR = server/obj
 SERVER_SRC_FILES = $(addprefix $(SERVER_DIR)/, $(SERVER_SRC))
@@ -47,18 +47,18 @@ $(SERVER): $(SERVER_OBJ)
 	@echo "$(SERVER_PREFIX) Link complete: $(SERVER)"
 
 $(LIBFT):
-	@echo "$(PREFIX) Building library: libft"
+	@echo "$(SERVER_PREFIX)$(CLIENT_PREFIX) Building libft:"
 	@$(MAKE) --no-print-directory -C $(LIBFT_DIR)
 
 clean:
 	@rm -rf $(SERVER_OBJ_DIR) $(CLIENT_OBJ_DIR)
 	@$(MAKE) --no-print-directory -C $(LIBFT_DIR) clean
-	@echo "$(YELLOW)Cleaned objects"
+	@echo "$(SERVER_PREFIX)$(CLIENT_PREFIX) Cleaned objects"
 
 fclean: clean
 	@rm -rf bin
 	@$(MAKE) --no-print-directory -C $(LIBFT_DIR) fclean
-	@echo "$(YELLOW)Removed executables."
+	@echo "$(SERVER_PREFIX)$(CLIENT_PREFIX) Removed executables."
 
 re: fclean all
 

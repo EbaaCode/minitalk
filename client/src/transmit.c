@@ -6,7 +6,7 @@
 /*   By: ealshari <ealshari@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/17 15:21:09 by ealshari          #+#    #+#             */
-/*   Updated: 2025/02/17 15:41:46 by ealshari         ###   ########.fr       */
+/*   Updated: 2025/02/18 16:35:59 by ealshari         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ static void	send_byte(t_client_context *ctx, unsigned char byte)
 	bit_position = 7;
 	while (bit_position >= 0)
 	{
-		ctx->status = 0;
+		ctx->ack_received = 0;
 		if ((byte >> bit_position) & 1)
 		{
 			if (kill(ctx->target_pid, SIGUSR1) == -1)
@@ -30,8 +30,7 @@ static void	send_byte(t_client_context *ctx, unsigned char byte)
 			if (kill(ctx->target_pid, SIGUSR2) == -1)
 				print_error_and_exit("Failed to send signal to server");
 		}
-		while (!ctx->status)
-			;
+		while (!ctx->ack_received);
 		bit_position--;
 	}
 }

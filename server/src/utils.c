@@ -1,21 +1,19 @@
 /* ************************************************************************** */
-/*                                                    Standard header block    */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ealshari <ealshari@student.42amman.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/18 14:06:58 by ealshari          #+#    #+#             */
+/*   Updated: 2025/02/18 16:12:37 by ealshari         ###   ########.fr       */
+/*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
 void	print_error_and_exit(char *msg)
 {
-	ft_putendl_fd(msg, 2);
+	ft_putendl_fd(msg, STDERR_FILENO);
 	exit(EXIT_FAILURE);
-}
-
-int	send_signal(pid_t pid, int signum)
-{
-	if (kill(pid, signum) == -1)
-	{
-		ft_putendl_fd("Failed to send signal", 2);
-		return (-1);
-	}
-	return (0);
 }
