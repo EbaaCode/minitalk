@@ -1,7 +1,7 @@
 LIBFT_DIR = lib/libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
-CLIENT_SRC = main.c
+CLIENT_SRC = main.c transmit.c utils.c
 CLIENT_DIR = client/src
 CLIENT_OBJ_DIR = client/obj
 CLIENT_SRC_FILES = $(addprefix $(CLIENT_DIR)/, $(CLIENT_SRC))
